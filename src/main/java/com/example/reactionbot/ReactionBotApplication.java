@@ -66,7 +66,7 @@ public class ReactionBotApplication {
             List<OptionData> options = new ArrayList<>(8);
             options.add(new OptionData(OptionType.STRING, "title", "your poll needs a title").setRequired(true));
             options.add(new OptionData(OptionType.STRING, "text", "meaningful and supportive text").setRequired(true));
-            options.add(new OptionData(OptionType.STRING, "map", "provide entries in role: emoji manner").setRequired(true));
+            options.add(new OptionData(OptionType.STRING, "map", "provide entries in 'role: :emoji-alias:' manner").setRequired(true));
 
             guild.upsertCommand("arr", "assign role at reaction")
                     .addOptions(options)
