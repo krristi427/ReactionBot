@@ -1,8 +1,11 @@
 package com.example.reactionbot.adapters;
 
+import com.example.reactionbot.dataObject.ReactionEvent;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
@@ -10,23 +13,27 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.internal.entities.EmoteImpl;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Marker;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
-import java.util.LinkedHashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.function.Consumer;
 
 @Slf4j
 @Component
 public class ReactionsRoleAdapter extends ListenerAdapter {
 
-    private LinkedHashMap<String, String> roleToEmoji = new LinkedHashMap<>(8, 0.75f);
+    private final List<ReactionEvent> ongoingEvents = new ArrayList<>(10);
+    String messageID = "";
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
+
+        LinkedHashMap<String, String> roleToEmoji = new LinkedHashMap<>(8, 0.75f);
 
         List<OptionMapping> title = event.getOptionsByName("title");
         String messageTitle = title.get(0).getAsString();
@@ -48,8 +55,10 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
 
         event.replyEmbeds(
                 createMessageWithEmbeds(messageTitle, messageText.toString(), "Somebody")
-                        .build()).queue();
-
+                        .build())
+                .queue(interactionHook -> interactionHook.retrieveOriginal() // all this bullshit for an ID
+                        .queue(message -> ongoingEvents.add(
+                                new ReactionEvent(message.getId(), roleToEmoji))));
     }
 
     @Override
@@ -65,15 +74,26 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
     //since both extend the same class, OO saves the day
     private void handleReaction(GenericMessageReactionEvent event, boolean isReactionAdded) {
 
+        Optional<ReactionEvent> correspondingEvent = ongoingEvents.stream()
+                .filter(reactionEvent -> event.getMessageId().equals(reactionEvent.getId()))
+                .findFirst();
+
+        if (correspondingEvent.isEmpty()) {
+            log.warn("It seems the Event the user tried to react to, is unavailable");
+            return;
+        }
+
+        LinkedHashMap<String, String> currentMapping = correspondingEvent.get().getRoleToEmojiMapping();
+
         String emoji = event.getReaction().getReactionEmote().getEmoji();
         String role = "";
 
         //could i have built the map differently in order to call a simple key.getValue()? Yes
         // why didn't i do it? I just really like streams :D
-        Optional<String> roleOptional = findKeyForValue(roleToEmoji, emoji);
+        Optional<String> roleOptional = findKeyForValue(currentMapping, emoji);
 
         if (roleOptional.isEmpty()) {
-            log.error("No Role was found for that emoji in the provided map");
+            log.warn("No Role was found for that emoji ( " + emoji + " ) in the provided map");
             return;
         }
 
@@ -93,7 +113,6 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         } else {
             guild.removeRoleFromMember(event.getUserId(), rolesByName.get(0)).queue();
         }
-
     }
 
     private EmbedBuilder createMessageWithEmbeds(String title, String description, String authorName) {
