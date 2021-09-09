@@ -1,7 +1,9 @@
 package com.example.reactionbot.adapters;
 
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Component
 public class ReactionsRoleAdapter extends ListenerAdapter {
 
@@ -69,18 +72,26 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         // why didn't i do it? I just really like streams :D
         Optional<String> roleOptional = findKeyForValue(roleToEmoji, emoji);
 
-        if (roleOptional.isPresent()) {
-            role = roleOptional.get();
+        if (roleOptional.isEmpty()) {
+            log.error("No Role was found for that emoji in the provided map");
+            return;
         }
+
+        role = roleOptional.get();
 
         Guild guild = event.getGuild();
 
+        List<Role> rolesByName = guild.getRolesByName(role, true);
+        if (rolesByName.isEmpty()) {
+            log.error("Role not found in Guild. The case will be ignored, " +
+                    "but please look out for spelling errors or availability of the given role");
+            return;
+        }
+
         if (isReactionAdded) {
-            guild.addRoleToMember(event.getUserId(),
-                    guild.getRolesByName(role, true).get(0)).queue();
+            guild.addRoleToMember(event.getUserId(), rolesByName.get(0)).queue();
         } else {
-            guild.removeRoleFromMember(event.getUserId(),
-                    guild.getRolesByName(role, true).get(0)).queue();
+            guild.removeRoleFromMember(event.getUserId(), rolesByName.get(0)).queue();
         }
 
     }
