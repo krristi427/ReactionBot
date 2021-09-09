@@ -1,7 +1,7 @@
 package com.example.reactionbot;
 
 import com.example.reactionbot.adapters.MessageAdapter;
-import com.example.reactionbot.adapters.MessageRoleAdapter;
+import com.example.reactionbot.adapters.ReactionsRoleAdapter;
 import com.example.reactionbot.adapters.ReactionDeleteAdapter;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
@@ -37,7 +37,7 @@ public class ReactionBotApplication {
     private ReactionDeleteAdapter reactionDeleteAdapter;
 
     @Autowired
-    private MessageRoleAdapter messageRoleAdapter;
+    private ReactionsRoleAdapter reactionsRoleAdapter;
 
     public static void main(String[] args) {
         SpringApplication.run(ReactionBotApplication.class, args);
@@ -51,11 +51,13 @@ public class ReactionBotApplication {
         JDA jda = null;
 
         try {
+
+            //TODO get all listeners via reflections
             jda = JDABuilder.createLight(token)
                     .setActivity(Activity.listening("%"))
                     .addEventListeners(messageAdapter)
                     .addEventListeners(reactionDeleteAdapter)
-                    .addEventListeners(messageRoleAdapter)
+                    .addEventListeners(reactionsRoleAdapter)
                     .build();
 
             jda.awaitReady();

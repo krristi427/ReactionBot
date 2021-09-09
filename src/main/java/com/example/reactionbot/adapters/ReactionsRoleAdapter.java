@@ -1,7 +1,11 @@
 package com.example.reactionbot.adapters;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
@@ -10,9 +14,11 @@ import org.springframework.stereotype.Component;
 import java.awt.*;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Component
-public class MessageRoleAdapter extends ListenerAdapter {
+public class ReactionsRoleAdapter extends ListenerAdapter {
 
     private LinkedHashMap<String, String> roleToEmoji = new LinkedHashMap<>(8, 0.75f);
 
@@ -43,6 +49,42 @@ public class MessageRoleAdapter extends ListenerAdapter {
 
     }
 
+    @Override
+    public void onMessageReactionAdd(@NotNull MessageReactionAddEvent event) {
+        handleReaction(event, true);
+    }
+
+    @Override
+    public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
+        handleReaction(event, false);
+    }
+
+    //since both extend the same class, OO saves the day
+    private void handleReaction(GenericMessageReactionEvent event, boolean isReactionAdded) {
+
+        String emoji = event.getReaction().getReactionEmote().getEmoji();
+        String role = "";
+
+        //could i have built the map differently in order to call a simple key.getValue()? Yes
+        // why didn't i do it? I just really like streams :D
+        Optional<String> roleOptional = findKeyForValue(roleToEmoji, emoji);
+
+        if (roleOptional.isPresent()) {
+            role = roleOptional.get();
+        }
+
+        Guild guild = event.getGuild();
+
+        if (isReactionAdded) {
+            guild.addRoleToMember(event.getUserId(),
+                    guild.getRolesByName(role, true).get(0)).queue();
+        } else {
+            guild.removeRoleFromMember(event.getUserId(),
+                    guild.getRolesByName(role, true).get(0)).queue();
+        }
+
+    }
+
     private EmbedBuilder createMessageWithEmbeds(String title, String description, String authorName) {
 
         return new EmbedBuilder()
@@ -50,5 +92,15 @@ public class MessageRoleAdapter extends ListenerAdapter {
                 .setDescription(description)
                 .setColor(Color.magenta)
                 .setAuthor(authorName + " asked for this");
+    }
+
+    private Optional<String> findKeyForValue(LinkedHashMap<String, String> roleToEmoji, String emoji) {
+
+        return roleToEmoji.entrySet()
+                .stream()
+                .filter(key -> emoji.equals(
+                        key.getValue()))
+                .map(Map.Entry::getKey)
+                .findFirst();
     }
 }
