@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,7 +17,7 @@ import java.util.regex.Pattern;
 @Component
 public class MessageRoleAdapter extends ListenerAdapter {
 
-    //TODO time the poll so that one could read stats on how it went
+    private static final String PATTERN = "[\\w]+:\\s[\\u0000-\\uFFFF]";
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
@@ -29,18 +30,9 @@ public class MessageRoleAdapter extends ListenerAdapter {
 
         List<OptionMapping> mappings = event.getOptionsByName("map");
 
-        //to match the format of role: unicode
-        //TODO refactor this in it's own method
         String rolesWithEmoji = mappings.get(0).getAsString();
 
-        Pattern pattern = Pattern.compile("[\\w]+:\\s[\\u0000-\\uFFFF]");
-        Matcher matcher = pattern.matcher(rolesWithEmoji);
-
-        List<String> roleAndEmoji = new ArrayList<>();
-
-        while (matcher.find()) {
-            roleAndEmoji.add(matcher.group());
-        }
+        List<String> roleAndEmoji = groupRoleAndEmoji(rolesWithEmoji);
 
         for (String s : roleAndEmoji) {
 
@@ -60,5 +52,19 @@ public class MessageRoleAdapter extends ListenerAdapter {
                 .setDescription(description)
                 .setColor(Color.magenta)
                 .setAuthor(authorName + " asked for this");
+    }
+
+    private List<String> groupRoleAndEmoji(String rolesWithEmoji) {
+
+        Pattern pattern = Pattern.compile(PATTERN);
+        Matcher matcher = pattern.matcher(rolesWithEmoji);
+
+        List<String> roleAndEmoji = new ArrayList<>();
+
+        while (matcher.find()) {
+            roleAndEmoji.add(matcher.group());
+        }
+
+        return roleAndEmoji;
     }
 }
