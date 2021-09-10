@@ -1,11 +1,10 @@
 package com.example.reactionbot.adapters;
 
 import com.example.reactionbot.dataObject.ReactionEvent;
+import com.example.reactionbot.services.MessageService;
 import lombok.extern.slf4j.Slf4j;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.MessageBuilder;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
@@ -13,22 +12,16 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.internal.entities.EmoteImpl;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Marker;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
-import java.util.function.Consumer;
 
 @Slf4j
 @Component
 public class ReactionsRoleAdapter extends ListenerAdapter {
 
     private final List<ReactionEvent> ongoingEvents = new ArrayList<>(10);
-    String messageID = "";
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
@@ -44,18 +37,26 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         List<OptionMapping> mappings = event.getOptionsByName("map");
         String[] rolesWithEmoji = mappings.get(0).getAsString().split(" ");
 
-        //+=2 bc you don't need to check the emojis
-        for (int i = 0; i < rolesWithEmoji.length; i+=2) {
+        // In this for-loop, the map is filled with the role-emoji pairs AND
+        // the messageText is updated to contain the mappings in a representable manner
+        for (int i = 0; i < rolesWithEmoji.length; i+=2) { //+=2 bc you don't need to check the emojis
 
             //drop the last character (the ":") in the string
             rolesWithEmoji[i] = rolesWithEmoji[i].substring(0, rolesWithEmoji[i].length() - 1);
             roleToEmoji.put(rolesWithEmoji[i], rolesWithEmoji[i + 1]);
-            messageText.append("\n").append(rolesWithEmoji[i]).append(" -> ").append(rolesWithEmoji[i + 1]);
+            messageText.append("\n").append(rolesWithEmoji[i]).append(" --> ").append(rolesWithEmoji[i + 1]);
         }
 
+        List<OptionMapping> footer = event.getOptionsByName("footer");
+
+        //if the footer-option is empty: send a custom message, else whatever the footer has
+        String footerMessage = footer.isEmpty() ? "Made with ❤️ by your server-team": footer.get(0).getAsString();
+
+        Member member = event.getMember();
+        String authorName = member == null ? "Somebody": member.getEffectiveName();
+
         event.replyEmbeds(
-                createMessageWithEmbeds(messageTitle, messageText.toString(), "Somebody")
-                        .build())
+                MessageService.sendGeneralMessage(authorName + " asked for this", messageTitle, messageText.toString(), footerMessage))
                 .queue(interactionHook -> interactionHook.retrieveOriginal() // all this bullshit for an ID
                         .queue(message -> ongoingEvents.add(
                                 new ReactionEvent(message.getId(), roleToEmoji))));
@@ -113,15 +114,6 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         } else {
             guild.removeRoleFromMember(event.getUserId(), rolesByName.get(0)).queue();
         }
-    }
-
-    private EmbedBuilder createMessageWithEmbeds(String title, String description, String authorName) {
-
-        return new EmbedBuilder()
-                .setTitle(title)
-                .setDescription(description)
-                .setColor(Color.magenta)
-                .setAuthor(authorName + " asked for this");
     }
 
     private Optional<String> findKeyForValue(LinkedHashMap<String, String> roleToEmoji, String emoji) {
