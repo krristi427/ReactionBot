@@ -24,9 +24,7 @@ import java.util.List;
 @SpringBootApplication
 @Slf4j
 public class ReactionBotApplication {
-
-    //TODO create a MessagingService that sends messages with embeds
-
+    
     @Autowired
     Environment environment;
 
