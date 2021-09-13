@@ -56,7 +56,7 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         String authorName = member == null ? "Somebody": member.getEffectiveName();
 
         event.replyEmbeds(
-                MessageService.sendGeneralMessage(authorName + " asked for this", messageTitle, messageText.toString(), footerMessage))
+                MessageService.getInstance().sendGeneralMessage(authorName + " asked for this", messageTitle, messageText.toString(), footerMessage))
                 .queue(interactionHook -> interactionHook.retrieveOriginal() // all this bullshit for an ID
                         .queue(message -> ongoingEvents.add(
                                 new ReactionEvent(message.getId(), roleToEmoji))));

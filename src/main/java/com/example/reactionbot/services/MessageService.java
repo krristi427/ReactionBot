@@ -8,7 +8,13 @@ import java.time.Instant;
 
 public class MessageService {
 
-    public static MessageEmbed sendGeneralMessage(String authorName, String title, String description, String footer) {
+    private MessageService() {}
+    private static final MessageService instance = new MessageService();
+    public static MessageService getInstance() {
+        return instance;
+    }
+
+    public MessageEmbed sendGeneralMessage(String authorName, String title, String description, String footer) {
 
         return new EmbedBuilder()
                 .setAuthor(authorName)
@@ -20,7 +26,7 @@ public class MessageService {
                 .build();
     }
 
-    public static MessageEmbed sendGeneralMessageWithImage(String authorName, String title, String description, String footer, String imageUrl) {
+    public MessageEmbed sendGeneralMessageWithImage(String authorName, String title, String description, String footer, String imageUrl) {
 
         return new EmbedBuilder()
                 .setAuthor(authorName)
@@ -33,7 +39,7 @@ public class MessageService {
                 .build();
     }
 
-    public static MessageEmbed sendGeneralMessageWithThumbnail(String authorName, String title, String description, String footer, String thumbnailUrl) {
+    public MessageEmbed sendGeneralMessageWithThumbnail(String authorName, String title, String description, String footer, String thumbnailUrl) {
 
         return new EmbedBuilder()
                 .setAuthor(authorName)
@@ -46,7 +52,7 @@ public class MessageService {
                 .build();
     }
 
-    public static MessageEmbed sendGeneralMessageWithTimestamp(String authorName, String title, String description, String footer) {
+    public MessageEmbed sendGeneralMessageWithTimestamp(String authorName, String title, String description, String footer) {
 
         return new EmbedBuilder()
                 .setAuthor(authorName)
