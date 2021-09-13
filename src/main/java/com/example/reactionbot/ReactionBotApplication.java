@@ -33,12 +33,6 @@ public class ReactionBotApplication {
     Environment environment;
 
     @Autowired
-    private MessageAdapter messageAdapter;
-
-    @Autowired
-    private ReactionDeleteAdapter reactionDeleteAdapter;
-
-    @Autowired
     private ReactionsRoleAdapter reactionsRoleAdapter;
 
     public static void main(String[] args) {
@@ -55,14 +49,9 @@ public class ReactionBotApplication {
         try {
 
             jda = JDABuilder.createLight(token)
-                    .setActivity(Activity.listening("%"))
+                    .setActivity(Activity.listening("/arr"))
                     .addEventListeners(reactionsRoleAdapter)
                     .build();
-
-            jda.awaitReady();
-
-            String serverID = environment.getProperty("GUILD-ID");
-            Guild guild = jda.getGuildById(serverID);
 
             List<OptionData> options = new ArrayList<>(8);
             options.add(new OptionData(OptionType.STRING, "title", "your poll needs a title").setRequired(true));
@@ -70,11 +59,11 @@ public class ReactionBotApplication {
             options.add(new OptionData(OptionType.STRING, "map", "provide entries in 'role: :emoji-alias:' manner").setRequired(true));
             options.add(new OptionData(OptionType.STRING, "footer", "a small footer to be remembered by"));
 
-            guild.upsertCommand("arr", "assign role at reaction")
+            jda.upsertCommand("arr", "assign role at reaction")
                     .addOptions(options)
                     .queue();
 
-        } catch (LoginException | InterruptedException e) {
+        } catch (LoginException e) {
             log.error("Login failed, your token is probably invalid or not provided", e);
             e.printStackTrace();
         }
