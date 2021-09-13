@@ -19,12 +19,16 @@ import org.springframework.core.env.Environment;
 
 import javax.security.auth.login.LoginException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SpringBootApplication
 @Slf4j
 public class ReactionBotApplication {
-    
+
+    //TODO consider setting up a github-workflow that deploys the changes to the bot on a push
+    //TODO add unit tests!
+
     @Autowired
     Environment environment;
 
@@ -50,11 +54,8 @@ public class ReactionBotApplication {
 
         try {
 
-            //TODO get all listeners via reflections
             jda = JDABuilder.createLight(token)
                     .setActivity(Activity.listening("%"))
-                    .addEventListeners(messageAdapter)
-                    .addEventListeners(reactionDeleteAdapter)
                     .addEventListeners(reactionsRoleAdapter)
                     .build();
 
