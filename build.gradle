@@ -29,9 +29,11 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     implementation("net.dv8tion:JDA:4.3.0_323") {
-        //it's jsut a simple reaction-bot: it doesn't need to work with audio
+        //it's just a simple reaction-bot: it doesn't need to work with audio
         exclude module: 'opus-java'
     }
+
+    implementation 'com.google.code.gson:gson:2.8.8'
 }
 
 test {

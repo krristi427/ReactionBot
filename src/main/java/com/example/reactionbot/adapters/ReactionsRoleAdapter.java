@@ -2,6 +2,7 @@ package com.example.reactionbot.adapters;
 
 import com.example.reactionbot.dataObject.ReactionEvent;
 import com.example.reactionbot.services.MessageService;
+import com.example.reactionbot.services.StorageService;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -21,7 +22,12 @@ import java.util.*;
 @Component
 public class ReactionsRoleAdapter extends ListenerAdapter {
 
-    private final List<ReactionEvent> ongoingEvents = new ArrayList<>(10);
+    private List<ReactionEvent> ongoingEvents;
+    StorageService storageService = StorageService.getInstance();
+
+    public ReactionsRoleAdapter() {
+        ongoingEvents = fillOngoingEvents();
+    }
 
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
@@ -43,6 +49,8 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
 
             //drop the last character (the ":") in the string
             rolesWithEmoji[i] = rolesWithEmoji[i].substring(0, rolesWithEmoji[i].length() - 1);
+
+            //TODO add checks to prevent users from using the same emoji twice within an Event
             roleToEmoji.put(rolesWithEmoji[i], rolesWithEmoji[i + 1]);
             messageText.append("\n").append(rolesWithEmoji[i]).append(" --> ").append(rolesWithEmoji[i + 1]);
         }
@@ -58,8 +66,19 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         event.replyEmbeds(
                 MessageService.getInstance().sendGeneralMessage(authorName + " asked for this", messageTitle, messageText.toString(), footerMessage))
                 .queue(interactionHook -> interactionHook.retrieveOriginal() // all this bullshit for an ID
-                        .queue(message -> ongoingEvents.add(
-                                new ReactionEvent(message.getId(), roleToEmoji))));
+                        .queue(message -> {
+                            ongoingEvents.add(new ReactionEvent(message.getId(), roleToEmoji));
+                            updateOngoingEvents();
+                        }));
+    }
+
+    private void updateOngoingEvents() {
+
+        storageService.writeToFile(ongoingEvents);
+    }
+
+    private List<ReactionEvent> fillOngoingEvents() {
+        return storageService.readFromFile();
     }
 
     @Override
