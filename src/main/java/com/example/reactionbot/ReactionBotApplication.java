@@ -22,9 +22,6 @@ import java.util.List;
 @Slf4j
 public class ReactionBotApplication {
 
-    //TODO consider setting up a github-workflow that deploys the changes to the bot on a push
-    //TODO add unit tests!
-
     @Autowired
     Environment environment;
 
