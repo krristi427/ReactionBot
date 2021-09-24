@@ -7,12 +7,14 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionRemoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.components.selections.SelectionMenu;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +40,9 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         String messageTitle = title.get(0).getAsString();
 
         List<OptionMapping> text = event.getOptionsByName("text");
-        StringBuilder messageText = new StringBuilder(text.get(0).getAsString());
+        String messageText = text.get(0).getAsString();
 
+        /*
         List<OptionMapping> mappings = event.getOptionsByName("map");
         String[] rolesWithEmoji = mappings.get(0).getAsString().split(" ");
 
@@ -55,6 +58,14 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
             messageText.append("\n").append(rolesWithEmoji[i]).append(" --> ").append(rolesWithEmoji[i + 1]);
         }
 
+         */
+
+        List<Role> availableRoles = event.getGuild().getRoles();
+
+        SelectionMenu.Builder builder = SelectionMenu.create("menu").setPlaceholder("Choose your role").setRequiredRange(0, availableRoles.size());
+        availableRoles.forEach(role -> builder.addOption(role.getName(), role.getName()));
+        SelectionMenu menu = builder.build();
+
         List<OptionMapping> footer = event.getOptionsByName("footer");
 
         //if the footer-option is empty: send a custom message, else whatever the footer has
@@ -64,7 +75,9 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         String authorName = member == null ? "Somebody": member.getEffectiveName();
 
         event.replyEmbeds(
-                MessageService.getInstance().sendGeneralMessage(authorName + " asked for this", messageTitle, messageText.toString(), footerMessage))
+                MessageService.getInstance().sendGeneralMessage(authorName + " asked for this", messageTitle, messageText, footerMessage))
+                .setEphemeral(true)
+                .addActionRow(menu)
                 .queue(interactionHook -> interactionHook.retrieveOriginal() // all this bullshit for an ID
                         .queue(message -> {
                             ongoingEvents.add(new ReactionEvent(message.getId(), roleToEmoji));
@@ -89,6 +102,29 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
     @Override
     public void onMessageReactionRemove(@NotNull MessageReactionRemoveEvent event) {
         handleReaction(event, false);
+    }
+
+    @Override
+    public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
+
+        Guild guild = event.getGuild();
+        String userID = event.getUser().getId();
+
+        event.getInteraction().getSelectedOptions().forEach(selectOption -> {
+
+            List<Role> rolesByName = guild.getRolesByName(selectOption.getValue(), true);
+            if (rolesByName.isEmpty()) {
+                log.error("Role not found in Guild. The case will be ignored, " +
+                        "but please look out for spelling errors or availability of the given role");
+                return;
+            }
+
+            guild.addRoleToMember(userID, rolesByName.get(0)).queue();
+        });
+
+        event.reply("You got a new role!")
+                .setEphemeral(true)
+                .queue();
     }
 
     //since both extend the same class, OO saves the day
