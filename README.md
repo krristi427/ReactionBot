@@ -10,8 +10,9 @@
 ## About The Project
 
 This is a simple Bot built for distributing roles to users in a Discord Server (also known as Guilds). The general Idea is that someone can use a slash command,
-provide the necessary parameters listed below and hit enter. The Bot will then send a fancy message as a reply and the users can react with some emoji to get a corresponding role. 
-If the users react with an emoji not listed in the mesage, or the role you provided doesn't exist in the current Server, nothing happens. 
+provide the necessary parameters listed below and hit enter. The Bot will then get the available roles in the server, 
+send a fancy message as a reply and the users can select their desired role from a dropdown menu. 
+This guarantees that a valid role in the server is selected and avoids frequent errors caused by misspelled words. 
 
 The command is `/arr` and it has the following parameters: 
 
@@ -22,11 +23,6 @@ The command is `/arr` and it has the following parameters:
 - **text**: 
 
    A descriptive text of what the message is about, what motivates it and what should the users do...you know the stuff everyone learns in a typical writing class :wink:
-   
-- **mapping**: 
-
-   Here you must provide a role to emoji mapping in the form `role: :emojiAssociation: `. The space after the emoji is necessary to sepparate the individual mappings. 
-   If you don't do that, your PC will explode :boom:
    
 - **footer**: 
 
