@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SelectionMenuEvent;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.react.GenericMessageReactionEvent;
@@ -34,6 +35,7 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
 
+        //TODO refactor the roleToEmoji code in a new emoji based-reaction event for polls
         LinkedHashMap<String, String> roleToEmoji = new LinkedHashMap<>(8, 0.75f);
 
         List<OptionMapping> title = event.getOptionsByName("title");
@@ -42,28 +44,13 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
         List<OptionMapping> text = event.getOptionsByName("text");
         String messageText = text.get(0).getAsString();
 
-        /*
-        List<OptionMapping> mappings = event.getOptionsByName("map");
-        String[] rolesWithEmoji = mappings.get(0).getAsString().split(" ");
-
-        // In this for-loop, the map is filled with the role-emoji pairs AND
-        // the messageText is updated to contain the mappings in a representable manner
-        for (int i = 0; i < rolesWithEmoji.length; i+=2) { //+=2 bc you don't need to check the emojis
-
-            //drop the last character (the ":") in the string
-            rolesWithEmoji[i] = rolesWithEmoji[i].substring(0, rolesWithEmoji[i].length() - 1);
-
-            //TODO add checks to prevent users from using the same emoji twice within an Event
-            roleToEmoji.put(rolesWithEmoji[i], rolesWithEmoji[i + 1]);
-            messageText.append("\n").append(rolesWithEmoji[i]).append(" --> ").append(rolesWithEmoji[i + 1]);
-        }
-
-         */
-
         List<Role> availableRoles = event.getGuild().getRoles();
 
-        SelectionMenu.Builder builder = SelectionMenu.create("menu").setPlaceholder("Choose your role").setRequiredRange(0, availableRoles.size());
-        availableRoles.forEach(role -> builder.addOption(role.getName(), role.getName()));
+        SelectionMenu.Builder builder = SelectionMenu.create("menu")
+                .setPlaceholder("Choose your role")
+                .setRequiredRange(0, availableRoles.size());
+        availableRoles.forEach(role ->
+                builder.addOption(role.getName(), role.getName()));
         SelectionMenu menu = builder.build();
 
         List<OptionMapping> footer = event.getOptionsByName("footer");
@@ -108,7 +95,8 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
     public void onSelectionMenu(@NotNull SelectionMenuEvent event) {
 
         Guild guild = event.getGuild();
-        String userID = event.getUser().getId();
+        User user = event.getUser();
+        String userID = user.getId();
 
         event.getInteraction().getSelectedOptions().forEach(selectOption -> {
 
@@ -122,9 +110,15 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
             guild.addRoleToMember(userID, rolesByName.get(0)).queue();
         });
 
-        event.reply("You got a new role!")
-                .setEphemeral(true)
-                .queue();
+        user.openPrivateChannel().queue(
+                privateChannel -> privateChannel.sendMessageEmbeds(MessageService.getInstance().sendGeneralMessage(
+                        user.getName(),
+                        "Role Added!",
+                        "Well, you see you reacted to a message and i couldn't help myself but send you a message to congratulate you on getting the new role :D",
+                        "Made with ❤️ by your server-team")).queue());
+
+        //since discord needs an acknowledgement of the interaction, but i can not use the one above as one :(
+        event.deferEdit().queue();
     }
 
     //since both extend the same class, OO saves the day
