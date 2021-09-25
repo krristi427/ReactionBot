@@ -35,6 +35,8 @@ public class ReactionsRoleAdapter extends ListenerAdapter {
     @Override
     public void onSlashCommand(@NotNull SlashCommandEvent event) {
 
+        if (!event.getName().equals("arr")) return;
+
         //TODO refactor the roleToEmoji code in a new emoji based-reaction event for polls
         LinkedHashMap<String, String> roleToEmoji = new LinkedHashMap<>(8, 0.75f);
 

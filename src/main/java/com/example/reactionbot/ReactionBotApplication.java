@@ -5,7 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -46,16 +48,23 @@ public class ReactionBotApplication {
                     .addEventListeners(reactionsRoleAdapter)
                     .build();
 
-            List<OptionData> options = new ArrayList<>(8);
-            options.add(new OptionData(OptionType.STRING, "title", "your poll needs a title").setRequired(true));
-            options.add(new OptionData(OptionType.STRING, "text", "meaningful and supportive text").setRequired(true));
-            options.add(new OptionData(OptionType.STRING, "footer", "a small footer to be remembered by"));
+            jda.awaitReady();
 
-            jda.upsertCommand("arr", "assign role at reaction")
-                    .addOptions(options)
+            Guild guild = jda.getGuildById("891394079961800714");
+
+            //options for arr
+            List<OptionData> optionsForArr = new ArrayList<>(8);
+            optionsForArr.add(new OptionData(OptionType.STRING, "title", "your poll needs a title").setRequired(true));
+            optionsForArr.add(new OptionData(OptionType.STRING, "text", "meaningful and supportive text").setRequired(true));
+            optionsForArr.add(new OptionData(OptionType.STRING, "footer", "a small footer to be remembered by"));
+
+            guild.updateCommands()
+                    .addCommands(new CommandData("arr", "assign role at reaction")
+                            .addOptions(optionsForArr)
+                            .setDefaultEnabled(true))
                     .queue();
 
-        } catch (LoginException e) {
+        } catch (LoginException | InterruptedException e) {
             log.error("Login failed, your token is probably invalid or not provided", e);
             e.printStackTrace();
         }
