@@ -26,6 +26,18 @@ public class MessageService {
                 .build();
     }
 
+    public MessageEmbed sendPollMessage(String authorName, String title, String description, String footer) {
+
+        return new EmbedBuilder()
+                .setAuthor(authorName)
+                .setColor(new Color(255, 164, 36))
+                .setTitle(title)
+                .addBlankField(false)
+                .setDescription(description)
+                .setFooter(footer)
+                .build();
+    }
+
     public MessageEmbed sendGeneralMessageWithImage(String authorName, String title, String description, String footer, String imageUrl) {
 
         return new EmbedBuilder()
