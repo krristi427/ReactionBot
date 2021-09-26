@@ -1,12 +1,13 @@
 # ReactionBot
 
 ![](https://img.shields.io/static/v1?label=Discord&message=ReactionBot&color=5865F2&style=for-the-badge&logo=discord)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/krristi1234/reactionbot?color=%23ffa352&logo=docker&style=for-the-badge)
 
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/krristi427/ReactionBot/Bot%20CI?style=for-the-badge)
 ![GitHub issues](https://img.shields.io/github/issues/krristi427/ReactionBot?style=for-the-badge)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/krristi427/ReactionBot?style=for-the-badge)
-![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/krristi1234/reactionbot?color=%23ffa352&logo=docker&style=for-the-badge)
 
+![GitHub](https://img.shields.io/github/license/krristi427/ReactionBot?style=for-the-badge)
 
 ## About The Project
 
