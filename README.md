@@ -5,6 +5,7 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/krristi427/ReactionBot/Bot%20CI?style=for-the-badge)
 ![GitHub issues](https://img.shields.io/github/issues/krristi427/ReactionBot?style=for-the-badge)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/krristi427/ReactionBot?style=for-the-badge)
+![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/krristi1234/reactionbot?color=%23ffa352&logo=docker&style=for-the-badge)
 
 
 ## About The Project
@@ -12,7 +13,9 @@
 This is a simple Bot built for distributing roles to users in a Discord Server (also known as Guilds). The general Idea is that someone can use a slash command,
 provide the necessary parameters listed below and hit enter. The Bot will then get the available roles in the server, 
 send a fancy message as a reply and the users can select their desired role from a dropdown menu. 
-This guarantees that a valid role in the server is selected and avoids frequent errors caused by misspelled words. 
+This guarantees that a valid role in the server is selected and avoids frequent errors in old, message-based commands caused by misspelled words. 
+In compliance with Human-Computer-Interaction guidelines, the Bot also send a direct feedback in a private channel, letting the 
+user know that something has changed and greeting him/her for the new role. 
 
 The command is `/arr` and it has the following parameters: 
 
@@ -38,15 +41,22 @@ The main frameworks, libraries, APIs and stuff are listed here. You don't need t
 - [JDA](https://github.com/DV8FromTheWorld/JDA) 
 
    The JavaDiscordAPI is the endpoint that connects this application to Discord. The have a very active and growing community on Discord, where they are help each
-   other provide ways of improving the code. 
+   other provide ways of improving one's code. If you use guild-related commands, the results will be instantly visible in the client, else (using a JDA-instance)
+   it might take up to the well-known hour. Just please for the love of everything you consider holy :angel: do not start with one
+   and then switch to the other. It will disorient the client and your old commands will probably still be there.
    
 - [Spring Boot](https://spring.io/projects/spring-boot)
 
-   One of the most popular Java-Frameworks, Spring is used to easily create Web-Applications and reduce the boilerplate code every project has.
+   One of the most popular Java-Frameworks, Spring is used to easily create Web-Applications and reduce the boilerplate code every project has. Here I've made use of
+   Spring Boot's famous Annotations. If you are unsure of what they do/when to use what, I suggest you start by understanding what an Application Bean is...
+   it will come up so often, you'll probably google it yourself :wink: In Addition, layered JARs were also a crucial part at improving the performance overall. 
    
 - [Docker](https://www.docker.com/)
 
-   Docker takes away repetitive configuration tasks and is used throughout the development lifecycle for easy application development.
+   Docker takes away repetitive configuration tasks and is used throughout the development lifecycle for easy application development. By utilizing Docker's smart
+   cache system paired with layered JARs, the performance increased, as now not every layer is built anew, but most of them are left untouched,
+   simply because nobody needed to change anything. It goes without saying that introducing breaking changes :boom: will increase the build time, 
+   however simple development changes strive on this feature. 
    
 ## Getting Started
 
@@ -95,7 +105,7 @@ Here is what you should do to get the ReactionBot on your Server:
 
    Like every other legendary application, your Bot must also start by waking up the docker whale :whale2: in a detached mode  
    ```sh
-   docker-compose up -d
+   docker-compose up -d --build
    ```
    at the command-line. 
    
@@ -113,6 +123,12 @@ Contributions are what make the open source community such an amazing place to b
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
+### A small heads up: 
+
+While developing, you might see some weird `NoSuchFileException` or `FileNotFoundException` for a specific .json. 
+Have you tried changing the path as instructed in the big comment-block at the beginning of the file? If that doesn't work, 
+try invalidating the cache and restarting you IDE or if you'd like a more brutal solution: just restart your PC 
 
 
 
