@@ -18,7 +18,15 @@ import java.util.List;
 @Slf4j
 public class StorageService {
 
-    private static final String FILE_NAME = "src/main/resources/ongoingRoleDistributions.json";
+    /**
+     * Used for reading from and writing to the backup json.
+     * The name starting with BOOT-INF is the actual path inside the container where the json is located
+     * and the other one is the local one. I recommend using the one from src for development purposes only
+     * AND SWITCHING BACK AFTER ANY CHANGE
+     */
+
+    //private static final String FILE_NAME = "src/main/resources/ongoingRoleDistributions.json";
+    private static final String FILE_NAME = "BOOT-INF/classes/ongoingRoleDistributions.json";
     private static final Path FILE_NAME_PATH = Paths.get(FILE_NAME);
 
     private List<ReactionEvent> ongoingReactionEvents;
